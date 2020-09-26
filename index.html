@@ -1,13 +1,27 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" href="index.css">
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    </head>
-    <body>
-        <div id="app">
-            {{ message }}
-        </div>
-        <script src="index.js"></script>
-    </body>
+<head>
+<link rel="stylesheet" href="index.css">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+<span>Input definitions:</span>
+<br />
+<textarea v-model="param_input_defns"></textarea>
+<br />
+<span>Action definitions:</span>
+<br />
+<textarea v-model="param_action_defns"></textarea>
+<br />
+<span>Input-Action-Reward definitions:</span>
+<br />
+<textarea v-model="param_input_action_reward_defns"></textarea>
+<br />
+<pre>{{ param_input_defns }}</pre>
+<pre>{{ param_action_defns }}</pre>
+<pre>{{ param_input_action_reward_defns }}</pre>
+</div>
+<script src="index.js"></script>
+</body>
 </html>
