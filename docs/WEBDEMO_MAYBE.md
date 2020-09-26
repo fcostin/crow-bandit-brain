@@ -41,3 +41,34 @@ https://github.com/littleredcomputer/odex-js
 
 
 
+### re: vue.js UI
+
+
+
+STATES
+
+EDIT ----> INIT ----> SIM of loop{ INPUT -> SENSE -> THINK -> ACT -> REWARD -> UPDATE } 
+  <---------------------
+
+
+use vue.js
+
+use textarea not table .
+
+output read-only view of simulation state:
+
+phase:
+    [input] [sense] [think] [act] [reward] [update]
+
+environment
+    input:      [ .... ]
+    reward:     [ unknown ]
+
+bandit:
+    action:     [ pending ]
+
+    beliefs:
+
+    input       action  V   UCB     # header
+    stim-red    no      0   1.23
+    ...
