@@ -13,12 +13,12 @@ const default_param_action_defns = [
 const default_param_input_action_reward_defns = [
     "stimulus-red yes 1",
     "stimulus-red no 0",
-    "stimulus-blue yes 1",
-    "stimulus-blue no 0",
+    "stimulus-blue yes 0",
+    "stimulus-blue no 1",
     "no-stimulus-red yes 0",
     "no-stimulus-red no 1",
-    "no-stimulus-blue yes 0",
-    "no-stimulus-blue no 1",
+    "no-stimulus-blue yes 1",
+    "no-stimulus-blue no 0",
 ]
 
 var app = new Vue({
@@ -45,7 +45,7 @@ var app = new Vue({
                 "param_action_defns": this.param_action_defns,
                 "input_action_rewards": this.param_input_action_reward_defns,
             })
-            this.out_debug = result.out_debug;
+            this.out_debug = result.event_log;
         }
     }
 });
@@ -64,18 +64,15 @@ function step(params) {
     let event_log = [];
 
     function emit(args) {
-        event_log.push(args);
+        event_log.push(args.join("  "));
     }
 
-    const n_steps = 3;
+    const n_steps = 20;
 
     simulate(n_steps, ctx, emit);
 
     return {
-        "out_debug": {
-            "event_log": event_log,
-            "ctx": ctx,
-        },
+        "event_log": event_log,
     }
 }
 
@@ -157,7 +154,7 @@ function simulate(n_steps, ctx, emit) {
     // of times we've tried doing action a in response to i.  
     const uncertainty = function(n_, z_) {
         return (z_ === 0.0) ? BIGV : Math.sqrt(Math.log(n_) / z_);
-    }
+    };
 
     // initialise bandit memory
 
@@ -181,9 +178,11 @@ function simulate(n_steps, ctx, emit) {
         emit(['Sensed', fmtMap(s)]);
 
         // Decide which action a* to do
-        const ucb = new Map(imap(ia => [ia, 
-            v.get(ia) + C * uncertainty(n.get(_ia_i(ia)), z.get(ia))
-        ], IA));
+        emit(['Considered action values', fmtMap(v)]);
+        const ucb = new Map(imap(
+            ia => [ia, v.get(ia) + C * uncertainty(n.get(_ia_i(ia)), z.get(ia))],
+            IA
+        ));
         emit(['Considered UCB', fmtMap(ucb)]);
         const p = new Map(imap(
             a => [a, sum(imap(i => ucb.get(_ia(i, a)) * s.get(i), I))],
@@ -197,9 +196,28 @@ function simulate(n_steps, ctx, emit) {
         const r = rewards.get(_ia(i_prime, a_star));
         emit(['Reward', r]);
 
-        // Remember how many times we've observed i' and done a* in response to i'
+        // Update how many times we've observed i' and done a* in response to i'
+        const succ_n = new Map(imap(i => [i, n.get(i) + 1.0*(i === i_prime)], I));
+
+        const succ_z = new Map(imap(
+            ia => [ia, z.get(ia) + 1.0 * (_ia_i(ia) === i_prime && _ia_a(ia) === a_star)],
+            IA
+        ));
 
         // Update our belief of how valuable doing a* in response to i' is.
+        const succ_v = new Map(imap(
+            ia => [ia, (
+                (_ia_i(ia) === i_prime && _ia_a(ia) === a_star) ?
+                (v.get(ia) * z.get(ia) + r) / (z.get(ia) + 1.0):
+                v.get(ia)
+            )],
+            IA
+        ));
+
+        // Advance
+        n = succ_n;
+        z = succ_z;
+        v = succ_v;
     }
 }
 
