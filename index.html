@@ -6,17 +6,26 @@
 </head>
 <body>
 <div id="app">
+<h3><span>Define your experiment:</span></h3>
 <span>Input definitions:</span>
 <br />
-<textarea v-model="param_input_defns"></textarea>
+<textarea v-model="param_input_defns" :disabled=is_editing_disabled></textarea>
 <br />
 <span>Action definitions:</span>
 <br />
-<textarea v-model="param_action_defns"></textarea>
+<textarea v-model="param_action_defns" :disabled=is_editing_disabled></textarea>
 <br />
 <span>Input-Action-Reward definitions:</span>
 <br />
-<textarea v-model="param_input_action_reward_defns"></textarea>
+<textarea v-model="param_input_action_reward_defns"  :disabled=is_editing_disabled></textarea>
+<br />
+<input type="radio" id="mode" value="edit" v-model="ui_mode">
+<label for="edit">Edit</label>
+<input type="radio" id="mode" value="run" v-model="ui_mode">
+<label for="run">Run</label>
+<br>
+<br />
+<span>debug:</span>
 <br />
 <pre>{{ param_input_defns }}</pre>
 <pre>{{ param_action_defns }}</pre>
