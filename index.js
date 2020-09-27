@@ -159,7 +159,7 @@ function simulate(n_steps, ctx, emit) {
     // times we've encountered the input i before. z_ is the number
     // of times we've tried doing action a in response to i.  
     const uncertainty = function(n_, z_) {
-        return (z_ === 0.0) ? BIGV : Math.sqrt(Math.log(n_) / z_);
+        return (z_ === 0.0) ? BIGV : Math.sqrt(Math.log(n_) / (1.0 * z_));
     };
 
     // initialise bandit memory
@@ -242,8 +242,6 @@ function simulate(n_steps, ctx, emit) {
         };
         out_rows.push(row);
     }
-
-    console.log(out_rows);
 
     return {
         "out_columns": out_columns,
