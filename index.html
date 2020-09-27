@@ -25,14 +25,12 @@
                 <label for="edit">Edit</label>
                 <input type="radio" id="mode" value="run" v-model="ui_mode">
                 <label for="run">Run</label>
-                <button :disabled=is_step_disabled>Step</button>
+                <button v-on:click="step" :disabled=is_step_disabled>Step</button>
             </div>
             <div class="layout-sim">
-                <span>debug:</span>
+                <h3><span>Output:</span></h3>
                 <br />
-                <pre>{{ param_input_defns }}</pre>
-                <pre>{{ param_action_defns }}</pre>
-                <pre>{{ param_input_action_reward_defns }}</pre>
+                <pre>{{ out_debug }}</pre>
             </div>
         </div>
     </div>
