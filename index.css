@@ -2,3 +2,18 @@ html, body {
     margin: 5px;
     padding: 0;
 }
+
+.layout-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: minmax(50px, auto);
+}
+.layout-edit {
+    grid-column: 1;
+    grid-row: 1;
+}
+.layout-sim {
+    grid-column: 2;
+    grid-row: 1;
+}

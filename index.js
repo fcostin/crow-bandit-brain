@@ -30,8 +30,11 @@ var app = new Vue({
         ui_mode: "edit",
     },
     computed: {
-        is_editing_disabled: function() {
+        is_edit_disabled: function() {
             return this.ui_mode != "edit"
+        },
+        is_step_disabled: function() {
+            return this.ui_mode != "run"
         },
     }
 });
