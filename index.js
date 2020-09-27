@@ -114,15 +114,19 @@ function sum(xs) {
 }
 
 function argmax(kvs) {
+    // return key with maximal value.
+    // break ties by sampling uniformly at random.
     let vstar = Number.NEGATIVE_INFINITY;
-    let kstar = undefined;
+    let kstars = [];
     for (const kv of kvs.entries()) {
         if (kv[1] > vstar) {
             vstar = kv[1];
-            kstar = kv[0];
+            kstars = [kv[0]];
+        } else if (kv[1] === vstar) {
+            kstars.push(kv[0]);
         }
     }
-    return kstar;
+    return randomChoice(kstars);
 }
 
 function simulate(n_steps, ctx, emit) {
