@@ -90,19 +90,19 @@ function fmtSet(xs) {
 }
 
 function fmtMap(xs) {
-    return "{" + Array.from(xs).sort().map(item => item.join(":")).join(", ") + "}";
+    return "{" + Array.from(xs).sort().map(item => item.join(": ")).join(", ") + "}";
 }
 
 function _ia(i, a) {
-    return [i, a].join(":");
+    return [i, a].join("#");
 }
 
 function _ia_i(ia) {
-    return ia.split(":")[0];
+    return ia.split("#")[0];
 }
 
 function _ia_a(ia) {
-    return ia.split(":")[1];
+    return ia.split("#")[1];
 }
 
 function sum(xs) {
