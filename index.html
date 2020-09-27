@@ -8,7 +8,7 @@
     <div id="app">
         <div class="layout-wrapper">
             <div class="layout-edit">
-                <h3><span>Define your experiment:</span></h3>
+                <h3><span>Design your experiment:</span></h3>
                 <span>Input definitions:</span>
                 <br />
                 <textarea v-model="param_input_defns" :disabled=is_edit_disabled></textarea>
@@ -22,17 +22,23 @@
                 <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
                 <br />
                 <input type="radio" id="mode" value="edit" v-model="ui_mode">
-                <label for="edit">Edit</label>
+                <label for="edit">Design</label>
                 <input type="radio" id="mode" value="run" v-model="ui_mode">
                 <label for="run">Run</label>
-                <button v-on:click="step" :disabled=is_step_disabled>Step</button>
+                <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
             </div>
             <div class="layout-sim">
-                <h3><span>Output:</span></h3>
+                <h3><span>results of trial:</span></h3>
+                <br />
+                <ol>
+                    <li v-for="event in out_debug">{{event}}</li>
+                </ol>
+                <br />
+                <h3><span>crow-bandit's hidden brain state:</span></h3>
                 <table>
                     <thead>
                       <tr>
-                        <th v-for="key in out_columns">{{ key }}</th>
+                        <th v-for="key in out_columns">{{key}}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -41,10 +47,6 @@
                       </tr>
                     </tbody>
                   </table>
-                <br />
-                <h3><span>Log:</span></h3>
-                <br />
-                <pre>{{ out_debug }}</pre>
             </div>
         </div>
     </div>
