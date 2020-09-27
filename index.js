@@ -29,6 +29,8 @@ var app = new Vue({
         param_input_action_reward_defns: default_param_input_action_reward_defns.join("\n"),
         ui_mode: "edit",
         out_debug: "",
+        out_columns: ["Input", "Action", "Value", "UCB"],
+        out_rows: [],
     },
     computed: {
         is_edit_disabled: function() {
@@ -46,6 +48,8 @@ var app = new Vue({
                 "input_action_rewards": this.param_input_action_reward_defns,
             })
             this.out_debug = result.event_log;
+            this.out_columns = result.out_columns;
+            this.out_rows = result.out_rows;
         }
     }
 });
@@ -69,10 +73,12 @@ function step(params) {
 
     const n_steps = 20;
 
-    simulate(n_steps, ctx, emit);
+    const result = simulate(n_steps, ctx, emit);
 
     return {
         "event_log": event_log,
+        "out_columns": result.out_columns,
+        "out_rows": result.out_rows,
     }
 }
 
@@ -167,6 +173,9 @@ function simulate(n_steps, ctx, emit) {
     // V is our prior for the value of doing action a in repsonse to input i.
     let v = new Map(imap(ia => [ia, 0.5], IA));
 
+
+    let ucb = new Map();
+
     for (let step_i=0; step_i<n_steps; step_i++) {
         // The environment generates an input i' for us to observe.
         const i_prime = randomChoice(ctx.inputs);
@@ -179,7 +188,7 @@ function simulate(n_steps, ctx, emit) {
 
         // Decide which action a* to do
         emit(['Considered action values', fmtMap(v)]);
-        const ucb = new Map(imap(
+        ucb = new Map(imap(
             ia => [ia, v.get(ia) + C * uncertainty(n.get(_ia_i(ia)), z.get(ia))],
             IA
         ));
@@ -219,6 +228,29 @@ function simulate(n_steps, ctx, emit) {
         z = succ_z;
         v = succ_v;
     }
+
+    // provide output
+
+    const out_columns = ["Input", "Action", "Value", "UCB"];
+    let out_rows = [];
+    for (const ia of IA) {
+        let row = {
+            "Input":_ia_i(ia),
+            "Action":_ia_a(ia),
+            "Value":v.get(ia),
+            "UCB":Number(ucb.get(ia)).toFixed(3),
+        };
+        out_rows.push(row);
+    }
+
+    console.log(out_rows);
+
+    return {
+        "out_columns": out_columns,
+        "out_rows": out_rows,
+    }
+    
+        
 }
 
 function parseLines(parseLine, text) {

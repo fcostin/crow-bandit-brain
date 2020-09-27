@@ -29,6 +29,20 @@
             </div>
             <div class="layout-sim">
                 <h3><span>Output:</span></h3>
+                <table>
+                    <thead>
+                      <tr>
+                        <th v-for="key in out_columns">{{ key }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in out_rows">
+                        <td v-for="key in out_columns">{{row[key]}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                <br />
+                <h3><span>Log:</span></h3>
                 <br />
                 <pre>{{ out_debug }}</pre>
             </div>
