@@ -1,0 +1,141 @@
+idea:
+
+maintain a collection of "buckets" to approximate observations
+
+for each bucket, track:
+	mean and covariance of multivariate normal distribution
+	n, number of observations in the bucket
+	for each action a in A:
+		z(a): number of times we have done a in response to an observation in this bucket
+		v(a): mean value of reward from doing a in response to an observation in this bucket
+
+Collection of buckets is roughly a guassian mixture model.
+
+We can start growing the collection by allocating 1 new bucket for each
+individual observation.
+
+Once we have "too many" buckets we can try to compress the collection
+to use fewer buckets but still give a similar approximation of the
+aggregate upper-confidence-bound for each action r over the input space.
+
+
+Let X be space of input observations.
+Let A be space of actions, assumed to be discrete & finite.
+Let R be space of rewards, assumed to be in [0, 1].
+
+f : X -> ( A -> R )
+
+g : X -> ( A -> R )
+
+
+|| f - g ||^2 = mean over x in X of |f(x) - g(x)|^2
+
+|f(x) - g(x)|^2 = mean over a in A of |f(x)(a) - g(x)(a)|^2        
+
+
+suppose f and g are both functions representing upper confidence bounds
+
+is g a good approximation of f?
+
+
+f = collection of buckets
+
+each bucket is represented as
+    multivariate normal of mu in R^n & sigma in R^(n*n)
+    sample count n tracking number of points in bucket
+    for each action a:
+	statistic z(a) tracking how many times we did a in response to a sample in this bucket
+	statistic v(a) tracking expected value of doing a in response to a sample in this bucket
+
+
+each bucket B supports:
+
+    p(x in B) what's the probability that a new sample x sits inside this bucket?
+    
+    ucb(a | x in B) assuming a new sample is in the bucket, what's the ucb of doing action a?
+
+
+given new sample x
+
+for each possible action a, compute
+
+ucb(a) := sum_i ucb(a | x in B_i) p(x in B_i) / sum_i p(x in B_i)
+
+then do action a* = argmax_a ucb(a)
+
+then observe reward r
+
+define a new bucket B' to remember the result
+
+B'
+    multivariate normal:
+        mu = x
+        sigma = prior(sigma)
+    sample count n = 1
+    for each action a:
+        z(a) := 1 if a == a* , otherwise 0
+        v(a) := r if a == a* , otherwise prior(v)
+
+add B' to the bucket-set BB
+
+then, if |BB| > N_B , we try to compress the bucket-set and replace it with an approximation that has fewer buckets.
+
+    interpret bucket-set BB as a action-vector-valued function of UCBs f : X -> (A -> R)
+    write phi(BB) : X x A -> R
+    
+    search for a new approximate bucket-set BB~* such that
+    
+    BB~* = argmin_{BB~}   ||phi(BB) - phi(BB~)||^2
+                  s.t. |BB~| < N_B
+
+
+instead of solving the above optimisation problem exactly, let's approximate
+
+local search
+
+consider moves that pick 2 buckets from BB and merge them
+
+merge operation between bucket B and B'
+
+merge(B, B')
+    multivariate normal:
+        closed form expression to combine:
+        See JulianD's answer re: pooling two gaussians: https://math.stackexchange.com/questions/453113/how-to-merge-two-gaussians
+    
+    sample count:
+        n := n_B + n_B'
+    
+    for each action a:
+        z(a) := z_B(a) + z_B'(a)
+        v(a) := ( z_B(a)*v_B(a) + z_B'(a)*v_B'(a) ) / (z_B(a) + z_B'(a))
+        
+        
+        
+Given that definition of merge of two buckets, define
+
+BB~~* as the solution to:
+
+argmin_{BB~~} || phi(BB) - phi(BB~~) ||^2
+
+such that
+
+    | BB~~ intersection BB | = | BB | - 2
+    | BB~~ | = | BB | - 1
+    
+    BB~~ \ BB  = { merge(BB \ BB~~) }
+    
+i.e. BB~~ is the result of taking a copy of BB and then
+    replacing two of the buckets in the copy with their merge
+
+
+evaluation the objective function ... remains somewhat problematic
+
+
+Suspicions:
+
+*   what i am doing above is at least partly coherent
+*   the policy for dealing with unexplored regions is not articulated
+*   the above is unlikely to be Bayesian, but it may be possible to recast it in a Bayesian way
+*   it may be possible to get better results by understanding the rough theory that justifies the UCB,
+    then considering how to redefine the UCB from first principles assuming that we're
+    approximating things with mixtures of multivariate normal distributions
