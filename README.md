@@ -51,6 +51,8 @@ The demo is not at all crow-like.
 
 *   [Dasgupta & Langford - active learning tutorial, ICML 2009](https://hunch.net/~active_learning/)
 
+*   [Li, Chu, Langford & Schapire - Contextual-Bandit Approach to Personalized News Article Recommendation](http://rob.schapire.net/papers/www10.pdf)
+
 *   [Nieder, Wagener & Rinnert - A neural correlate of sensory consciousness in a corvid bird](https://science.sciencemag.org/content/369/6511/1626)
 
 *   [merging or pooling two multivariate normal distributions](https://math.stackexchange.com/questions/453113/how-to-merge-two-gaussians/2364908#2364908)
