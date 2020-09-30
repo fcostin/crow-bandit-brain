@@ -1,0 +1,171 @@
+LinUCB notes
+
+
+
+maintain and accumulate
+
+A <- A + xx^T
+b <- b + rx
+
+
+matrix D^T D + I
+
+D : design matrix
+
+
+(D^T D + I) theta = 
+
+
+variance of Y^ = L sigma^2
+
+where L := X (X^T X)^{-1} X^T
+
+predictive variance of the prediction at the point x
+
+x^t (X^T X)^{-1} x
+
+std. dev. is \sqrt{x^t (X^T X)^{-1} x}
+
+
+| predicted reward - expected reward | <= alpha * std. dev. of prediction
+
+Glorious!
+
+
+So, choose arm with maximal value of
+
+predicted reward + alpha * std. dev. of prediction
+
+
+| predicted y - expected y |
+
+= |y^ - E[y]|
+
+
+= | log (p^ / (1 - p^) )  - E [ log (p / (1 - p) ) ] |
+
+
+
+
+
+assume linear relationship from feature x_i to reward r_i
+
+x_i^t b = r_i
+
+find weights b to minimise the loss L(b)
+
+L(b) = 1/2 sum_i ( x_i^t b - r_i )^2
+     = 1/2 (X^t b - r)^t (X^t b - r)
+
+
+d/db L
+
+    = d/db { 1/2 (X^t b - r)^t (X^t b - r) }
+    = 1/2 { X (X^t b - r) + (X^t b - r)^t X^t }
+    = 1/2 { X (X^t b - r) + X (X^t b - r) }
+    = X (X^t b - r)
+
+set d/db L = 0
+
+
+X (X^t b - r) = 0
+
+solve for b
+
+X X^t b = X r
+
+b = (X X^t)^{-1} X r
+
+there we go, that defines an update scheme:
+
+    accumulate (X X^t)^{-1}     : shape (d, d)
+    accumulate (X r)            : shape (d, )
+    
+    so X has shape (d, m) and r has shape (m, )
+    Checks out.
+
+We can play the same game again assuming a different loss
+function.
+
+e.g. adding a term for ridge-regression
+
+
+
+
+================== sketch of code ==================
+
+
+
+/*  LinUCB with disjoint linear models.
+ *  Ref: Algorithm 1, http://rob.schapire.net/papers/www10.pdf
+ *
+ *  Implementation
+ *  https://github.com/nicolaspanel/numjs/
+ *  https://github.com/scijs
+ */
+
+var qr = require('ndarray-householder-qr')
+
+var nj = require('numjs');
+<script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script>
+
+const qr_invert = function(A) {
+    let QR = A.clone();
+    let R_diag = zeros([d], A.dtype);
+    qr.factor(QR, R_diag);
+    const solve = function(y) {
+        let x = y.clone();
+        qr.solve(qr, r_diag, x);
+        return x;
+    }
+    return solve;
+}
+
+// LinUCB with disjoint linear models.
+// Ref: Algorithm 1, http://rob.schapire.net/papers/www10.pdf
+
+const dtype = nj.float64;
+
+const A_by_a = new Map();
+const b_by_a = new Map();
+
+let x = nj.zeros([d], dtype); // assume x contains a new feature vector
+
+const p_by_a = new Map();
+
+for(const a of actions) {
+    if !A_by_a.has(a) {
+        // initialise A to d-dimensional identity matrix
+        A_by_a.set(a, nj.identity(d, dtype));
+        
+        // initialise b to d-dimensional zero vector
+        b_by_a.set(a, nj.zeros([d], dtype));
+    }
+    const A = A_by_a.get(a);
+    const inv_A = qr_invert(A);
+    const b = b_by_a.get(a);
+    
+    // theta := A^{-1} b
+    const theta = qr.solve(QR, R_diag, inv_A(b));
+    
+    // p := theta^t x + alpha * sqrt(x^t A^{-1} x)
+    const p = nj.add(nj.dot(theta, x), alpha * ndarry.sqrt(nj.dot(x, inv_A(x))));
+    
+    p_by_a.set(a, p);
+}
+
+const a_star = argmax(p_by_a);
+
+// do action a_star in response to observation x and receive a reward
+
+const r = reward(x, a_star);
+
+// update data for system a_star:
+
+// A <- A + outer(x, x^T)
+
+dger(1, A_by_a.get(a_star), x, x); // BLAS Level 2 DGER
+
+// b <- b + r * x   
+
+blas1.axpy(r, A_by_a.get(a_star), b_by_a.get(a_star));
