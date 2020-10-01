@@ -1,55 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="index.css">
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 </head>
 <body>
-    <div id="app">
-        <div class="layout-wrapper">
-            <div class="layout-edit">
-                <h3><span>Design your experiment:</span></h3>
-                <span>Input definitions:</span>
-                <br />
-                <textarea v-model="param_input_defns" :disabled=is_edit_disabled></textarea>
-                <br />
-                <span>Action definitions:</span>
-                <br />
-                <textarea v-model="param_action_defns" :disabled=is_edit_disabled></textarea>
-                <br />
-                <span>Input-Action-Reward definitions:</span>
-                <br />
-                <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
-                <br />
-                <input type="radio" id="mode" value="edit" v-model="ui_mode">
-                <label for="edit">Design</label>
-                <input type="radio" id="mode" value="run" v-model="ui_mode">
-                <label for="run">Run</label>
-                <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
-            </div>
-            <div class="layout-sim">
-                <h3><span>results of trial:</span></h3>
-                <br />
-                <ol>
-                    <li v-for="event in out_debug">{{event}}</li>
-                </ol>
-                <br />
-                <h3><span>crow-bandit's hidden brain state:</span></h3>
-                <table>
-                    <thead>
-                      <tr>
-                        <th v-for="key in out_columns">{{key}}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in out_rows">
-                        <td v-for="key in out_columns">{{row[key]}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-            </div>
-        </div>
-    </div>
-<script src="index.js"></script>
+  <h3>crow-bandit-brain demos</h3>
+<ol>
+    <li>
+      <a href="demo/1-discrete-bandit/index.html">discrete-bandit</a>
+      <p>
+        Input stimuli are modelled in a simplistic way: the space of input stimuli is modelled as a set containing four distinct elements.
+        There is no uncertainly in what element is observed and no attempt to model perception: instead, the input stimulus chosen by the
+        experimenter is mapped to a categorical variable in feature space that the crow may observe as a direct input. The crow starts with
+        no knowledge about the mapping from stimuli and actions to rewards, and needs to learn this by selecting and performing an action
+        in response to each input element. There are only two actions: "react" and "wait". A reward of 1 is given for performing the
+        "correct" action in response to the stimuli. Incorrect actions receive a reward of 0.
+      </p>
+      <p> 
+        The learning algorithm is based on upper confidence bounds: for each combination of input stimulus and possible action, the crow
+        stores how many times it has observed that exact stimulus, how many times it performed that action in response, the observed mean
+        reward value. From these values the crow can estimate upper-confidence bounds on the reward associated with performing an action.
+        The crow always selects an action to perform that has a minimal value of upper-confidence bound. Ties are broken randomly. 
+      </p>
+      <p>
+        Critique of this demo:
+        <ul>
+          <li>No perpeption model to distinguish what stimulus the experimenter chose versus what was
+            perceived. This is unrealistic.</li>
+          <li>If two input stimuli differ then they are regarded as corresponding to completely different situations.
+            There is no concept of similarity where the crow might reason "this novel situation is only slightly
+            different from another situation i am very familiar with". This has two downsides: the learning rate of
+            the crow will be much slower than otherwise when faced with situations that only differ slightly from
+            well-understood situations, and the crow will need an amount of memory proportional to the number of
+            distinct input stimuli observed, in order to remember every detail of every situation ever observed.
+          </li>
+        </ul>
+      </p>
+    </li>
+</ol>
 </body>
 </html>
