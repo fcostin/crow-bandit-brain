@@ -188,6 +188,27 @@ function argmax(kvs) {
     return randomChoice(kstars);
 }
 
+function randomChoice(items) {
+    return items[Math.floor(items.length * Math.random())];
+}
+
+function weightedRandomChoice(items, getWeight) {
+    const weights = items.map(getWeight, items);
+    const cumulativeWeights = new Array(weights.length);
+    let acc = 0.0
+    for (var i = 0; i < weights.length; i++) {
+        acc += weights[i];
+        cumulativeWeights[i] = acc;
+    }
+    const x = cumulativeWeights[weights.length-1]*Math.random();
+    let j = 0;
+    // bisection search here may be faster for large inputs, but our inputs are currently small.
+    while (cumulativeWeights[j] < x) {
+        j++;
+    }
+    return items[j];
+}
+
 // define some constants
 const BIGV = 10.0; // BIGV is a finite but very enticing value.
 const C = 1.0; // C is explore-exploit tradeoff parameter.
@@ -202,6 +223,9 @@ const uncertainty = function(n_, z_) {
 
 function makeSimulation(ctx) {
     const sim = new Object();
+
+    sim.ctx = ctx;
+
 
     /*
     // notation: define shorthand sets of indices
@@ -232,6 +256,13 @@ function makeSimulation(ctx) {
     */
 
     sim.step = function(emit) {
+
+        // The environment randomly samples a scenario according to the scenario weights.
+        const scenario = weightedRandomChoice(sim.ctx.input_scenarios, scenario => scenario.probability);
+
+        emit(['sampled scenario: ', scenario.scenario_name]);
+
+        // The environment generates raw inputs from that scenario for us to observe.
 
         emit(['todo implement sim.step:']);
 
@@ -331,11 +362,6 @@ function parseInputActionReward(line) {
         "reward": parseFloat(m.groups.reward),
     }
 }
-
-function randomChoice(items) {
-    return items[Math.floor(items.length * Math.random())];
-}
-
 
 // TODO: take a deep breath, install npm, set up a webpack pipeline and factor this into modules.
 /*
