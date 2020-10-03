@@ -209,6 +209,53 @@ function weightedRandomChoice(items, getWeight) {
     return items[j];
 }
 
+// Standard Normal variate using Box-Muller transform.
+// Ref: https://stackoverflow.com/a/36481059
+function randNormalBoxMuller() {
+    var u = 0, v = 0;
+    while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while(v === 0) v = Math.random();
+    return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+}
+
+function randNormal(mu, sigma) {
+    return randNormalBoxMuller() * sigma + mu;
+}
+
+// define how to generate samples of raw input values from generator definitions
+
+function extractArg(k, args) {
+    for(const arg of args) {
+        if (arg.k === k) {
+            return arg.v;
+        }
+    }
+    throw new Error("missing expected argument: "+k);
+}
+
+function evalDistribution(distDefn) {
+    if (distDefn.func === "N") { // Normal (aka Gaussian) distribution
+        const mu = extractArg("mu", distDefn.args);
+        const sigma = extractArg("sigma", distDefn.args);
+        return randNormal(mu, sigma);
+    } else {
+        throw new Error("distribution not defined: "+distDefn.func);
+    }
+}
+
+function evalGenerator(genDefn) {
+    return [genDefn.variable_name, evalDistribution(genDefn.distribution)];
+}
+
+function evalGenerators(genDefns) {
+    const result = new Map();
+    for(const genDefn of genDefns) {
+        const kv = evalGenerator(genDefn);
+        result.set(kv[0], kv[1]);
+    }
+    return result;
+}
+
 // define some constants
 const BIGV = 10.0; // BIGV is a finite but very enticing value.
 const C = 1.0; // C is explore-exploit tradeoff parameter.
@@ -262,9 +309,10 @@ function makeSimulation(ctx) {
 
         emit(['sampled scenario: ', scenario.scenario_name]);
 
-        // The environment generates raw inputs from that scenario for us to observe.
+        // The environment generates raw inputs from that scenario for crow to observe.
+        const raw_input_values = evalGenerators(scenario.generators);
 
-        emit(['todo implement sim.step:']);
+        emit(['crow observes raw inputs: ', fmtMap(raw_input_values)]);
 
         /*
         // The environment generates an input i' for us to observe.
