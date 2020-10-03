@@ -17,4 +17,13 @@ publish:
 clean:
 	rm -rf dist
 
-.PHONY: dist dist_static dist_js publish clean
+devenv_setup:
+	docker build -t npm -f npm.Dockerfile .
+	./venv.sh npm install --only=dev
+	./venv.sh npm install --only=prod
+
+devenv_clean:
+	rm -rf node_modules
+	rm -rf .npm_cache
+
+.PHONY: dist dist_static dist_js publish clean devenv_setup devenv_clean
