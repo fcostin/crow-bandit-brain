@@ -9,18 +9,18 @@ const default_param_raw_input_defns = [
 ]
 
 const default_param_scenario_defns = [
-    "NS-R 0.25 x0~N(mu=0.0, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "NS-B 0.25 x0~N(mu=0.0, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
-    "S1-R 0.05 x0~N(mu=0.2, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "S1-B 0.05 x0~N(mu=0.2, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
-    "S2-R 0.05 x0~N(mu=0.4, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "S2-B 0.05 x0~N(mu=0.4, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
-    "S3-R 0.05 x0~N(mu=0.6, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "S3-B 0.05 x0~N(mu=0.6, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
-    "S4-R 0.05 x0~N(mu=0.8, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "S4-B 0.05 x0~N(mu=0.8, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
-    "S5-R 0.05 x0~N(mu=1.0, sigma=0.3) x1~N(mu=1.0, sigma=0.3) x2~N(mu=0.0, sigma=0.3)",
-    "S5-B 0.05 x0~N(mu=1.0, sigma=0.3) x1~N(mu=0.0, sigma=0.3) x2~N(mu=1.0, sigma=0.3)",
+    "NS-R 0.25 x0~N(mu=0.0, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "NS-B 0.25 x0~N(mu=0.0, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
+    "S1-R 0.05 x0~N(mu=0.2, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "S1-B 0.05 x0~N(mu=0.2, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
+    "S2-R 0.05 x0~N(mu=0.4, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "S2-B 0.05 x0~N(mu=0.4, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
+    "S3-R 0.05 x0~N(mu=0.6, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "S3-B 0.05 x0~N(mu=0.6, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
+    "S4-R 0.05 x0~N(mu=0.8, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "S4-B 0.05 x0~N(mu=0.8, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
+    "S5-R 0.05 x0~N(mu=1.0, sigma=0.2) x1~N(mu=1.0, sigma=0.2) x2~N(mu=0.0, sigma=0.2)",
+    "S5-B 0.05 x0~N(mu=1.0, sigma=0.2) x1~N(mu=0.0, sigma=0.2) x2~N(mu=1.0, sigma=0.2)",
 ]
 
 const default_param_action_defns = [
