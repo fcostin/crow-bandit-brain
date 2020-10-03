@@ -318,9 +318,7 @@ function makeSimulation(ctx) {
     const delta = 0.1;
     const alpha = 1.0 + Math.sqrt(Math.log(2.0 / delta) / 2.0);
 
-    const d = sim.ctx.raw_inputs.length;
-
-    sim.learner = NewLinUCB(alpha, d, sim.ctx.actions)
+    sim.learner = null;
 
     sim.get_reward = function(scenario, action) {
       for (const item of sim.ctx.input_action_rewards) {
@@ -352,14 +350,23 @@ function makeSimulation(ctx) {
         const degree = sim.ctx.input_monomial_degree;
         const feature_values = monomialBasis(degree, raw_input_values);
 
+        const d = feature_values.size;
+
         emit(['crow generated input features: ', fmtMap(feature_values)]);
 
         const feature_keys = Array.from(feature_values.keys()).sort();
         const x = asarray([d], feature_keys.map(k => feature_values.get(k)));
+
+        if (sim.learner === null) {
+          sim.learner = NewLinUCB(alpha, d, sim.ctx.actions);
+        }
         const p_by_a = sim.learner.chooseAction(x);
+
+        emit(['crow calculated action weights: ', fmtMap(p_by_a)]);
+
         const a_star = argmax(p_by_a);
 
-        emit(['crow did action: '], a_star);
+        emit(['crow did action: ', a_star]);
 
         const r = sim.get_reward(scenario, a_star);
         if (r === 1.0) {

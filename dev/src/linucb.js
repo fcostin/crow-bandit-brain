@@ -109,7 +109,7 @@ function NewLinUCB(alpha, d, actions) {
         // r is the scalar reward value
         updateReward: function(x, a_star, r) {
             // A <- A + outer(x, x^T)
-            dger(1, this.A_by_a.get(a_star), x, x); // BLAS Level 2 DGER
+            dger(1, x, x, this.A_by_a.get(a_star)); // BLAS Level 2 DGER
 
             // b <- b + r * x
             axpy(r, x, this.b_by_a.get(a_star));
