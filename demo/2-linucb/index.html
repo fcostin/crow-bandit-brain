@@ -26,6 +26,11 @@
                 <br />
                 <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
                 <br />
+                <h3><span>Adjust your crow-learner:</span></h3>
+                <br />
+                <span>Feature Generation - degree of monomial basis: </span>
+                <input v-model.number="param_input_monomial_degree" min=0 max=5 type="number" :disabled=is_edit_disabled>
+                <br />
                 <input type="radio" id="mode" value="edit" v-model="ui_mode">
                 <label for="edit">Design</label>
                 <input type="radio" id="mode" value="run" v-model="ui_mode">

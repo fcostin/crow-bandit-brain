@@ -58,6 +58,7 @@ var app = new Vue({
         param_scenario_defns: default_param_scenario_defns.join("\n"),
         param_action_defns: default_param_action_defns.join("\n"),
         param_input_action_reward_defns: default_param_input_action_reward_defns.join("\n"),
+        param_input_monomial_degree: 2,
         ui_mode: "edit",
         out_debug: "",
         out_columns: [],
@@ -114,6 +115,7 @@ var app = new Vue({
                         this.status = "failed to parse input-action-rewards: " + e
                         return
                     }
+                    ctx.input_monomial_degree = this.param_input_monomial_degree
                     this.sim = makeSimulation(ctx);
                 }
 
@@ -256,6 +258,41 @@ function evalGenerators(genDefns) {
     return result;
 }
 
+function monomialBasis(degree, raw_inputs) {
+    if (!(Number.isInteger(degree) && (degree >= 0))) {
+        throw new Error("monomialBasis degree parameter must be non-negative integer")
+    }
+    const unitKey = "1";
+    switch(degree) {
+        case 0:
+            return new Map().set(unitKey, 1.0);
+        case 1:
+            return new Map(raw_inputs).set(unitKey, 1.0);
+        default:
+            const result = new Map();
+            const left = monomialBasis(1, raw_inputs);
+            const right = monomialBasis(degree - 1, raw_inputs);
+            for (const lkv of left.entries()) {
+                for (const rkv of right.entries()) {
+                    if (lkv[0] > rkv[0]) {
+                        continue;
+                    }
+                    let k = "";
+                    if (lkv[0] === unitKey) {
+                        k = rkv[0]
+                    } else if (rkv[0] === unitKey) {
+                        k = lkv[0]
+                    } else {
+                        k = lkv[0] + "." + rkv[0]
+                    }
+                    const v = lkv[1] * rkv[1];
+                    result.set(k, v);
+                }
+            }
+            return result;
+    }
+}
+
 // define some constants
 const BIGV = 10.0; // BIGV is a finite but very enticing value.
 const C = 1.0; // C is explore-exploit tradeoff parameter.
@@ -313,6 +350,13 @@ function makeSimulation(ctx) {
         const raw_input_values = evalGenerators(scenario.generators);
 
         emit(['crow observes raw inputs: ', fmtMap(raw_input_values)]);
+
+        // Feature detection pass
+
+        const degree = sim.ctx.input_monomial_degree;
+        const feature_values = monomialBasis(degree, raw_input_values);
+
+        emit(['crow generates input features: ', fmtMap(feature_values)]);
 
         /*
         // The environment generates an input i' for us to observe.
