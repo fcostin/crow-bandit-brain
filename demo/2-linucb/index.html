@@ -31,6 +31,8 @@
                 <input type="radio" id="mode" value="run" v-model="ui_mode">
                 <label for="run">Run</label>
                 <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
+                <br />
+                <span>{{status}}</span>
             </div>
             <div class="layout-sim">
                 <h3><span>results of trial:</span></h3>

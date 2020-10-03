@@ -63,6 +63,7 @@ var app = new Vue({
         out_columns: [],
         out_rows: [],
         sim: null,
+        status: "",
     },
     computed: {
         is_edit_disabled: function() {
@@ -86,29 +87,53 @@ var app = new Vue({
     },
     methods: {
         step: function(event) {
-            if (this.sim == null) {
-                const ctx = {
-                    "raw_inputs":  parseLines(parseName, this.param_raw_input_defns),
-                    "input_scenarios":  scenarioParser.parse(this.param_scenario_defns),
-                    "actions": parseLines(parseName, this.param_action_defns),
-                    "input_action_rewards": parseLines(parseInputActionReward, this.param_input_action_reward_defns),
-                };
-                this.sim = makeSimulation(ctx);
+            try {
+                if (this.sim == null) {
+                    const ctx = {};
+                    try {
+                        ctx.raw_inputs = parseLines(parseName, this.param_raw_input_defns);
+                    } catch(e) {
+                        this.status = "failed to parse raw inputs: " + e
+                        return
+                    }
+                    try {
+                        ctx.input_scenarios = scenarioParser.parse(this.param_scenario_defns);
+                    } catch(e) {
+                        this.status = "failed to parse scenarios: " + e
+                        return
+                    }
+                    try {
+                        ctx.actions = parseLines(parseName, this.param_action_defns);
+                    } catch(e) {
+                        this.status = "failed to parse actions: " + e
+                        return
+                    }
+                    try {
+                        ctx.input_action_rewards = parseLines(parseInputActionReward, this.param_input_action_reward_defns);
+                    } catch(e) {
+                        this.status = "failed to parse input-action-rewards: " + e
+                        return
+                    }
+                    this.sim = makeSimulation(ctx);
+                }
+
+                let event_log = [];
+
+                function emit(args) {
+                    event_log.push(args.join("  "));
+                }
+
+                const snapshot = this.sim.step(emit);
+
+                const snapshotTable = makeSnapshotTable(snapshot);
+
+                this.out_debug = event_log;
+                this.out_columns = snapshotTable.out_columns;
+                this.out_rows = snapshotTable.out_rows;
+                this.status = ""
+            } catch(e) {
+                this.status = e
             }
-
-            let event_log = [];
-
-            function emit(args) {
-                event_log.push(args.join("  "));
-            }
-
-            const snapshot = this.sim.step(emit);
-
-            const snapshotTable = makeSnapshotTable(snapshot);
-
-            this.out_debug = event_log;
-            this.out_columns = snapshotTable.out_columns;
-            this.out_rows = snapshotTable.out_rows;
         }
     }
 });
