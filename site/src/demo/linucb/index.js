@@ -381,69 +381,7 @@ function makeSimulation(ctx) {
 
         emit(['crow observed the reward from the environment']);
 
-        /*
-        // The environment generates an input i' for us to observe.
-        const i_prime = randomChoice(ctx.inputs);
-        emit(['crow-bandit observed input:', i_prime]);
-
-        
-        // Observe the input i' with our sensors
-        const s = new Map(imap(i => [i, 1.0*(i === i_prime)], sim.I));
-
-        // emit(['Sensed', fmtMap(s)]);
-
-        // Decide which action a* to do
-        // emit(['Considered action values', fmtMap(sim.v)]);
-        const ucb = new Map(imap(
-            ia => [ia, sim.v.get(ia) + C * uncertainty(sim.n.get(_ia_i(ia)), sim.z.get(ia))],
-            sim.IA
-        ));
-        // emit(['Considered UCB', fmtMap(ucb)]);
-        const p = new Map(imap(
-            a => [a, sum(imap(i => ucb.get(_ia(i, a)) * s.get(i), sim.I))],
-            sim.A
-        ));
-        // emit(['Considered action-potentials', fmtMap(p)]);
-        const a_star = argmax(p);
-        emit(['crow-bandit performed action:', a_star]);
-
-        // Respond to i' by doing a* and see what reward r the environment gives us
-        const r = sim.rewards.get(_ia(i_prime, a_star));
-        if (r === 1.0) {
-            emit(['crow-bandit demonstrated the desired action']);
-            emit(['crow-bandit got a reward']);
-        } else {
-            emit(['crow-bandit failed to demonstrate the desired action']);
-            emit(['crow-bandit did not get a reward']);
-        }
-        
-
-        // Update how many times we've observed i' and done a* in response to i'
-        const succ_n = new Map(imap(i => [i, sim.n.get(i) + 1.0*(i === i_prime)], sim.I));
-
-        const succ_z = new Map(imap(
-            ia => [ia, sim.z.get(ia) + 1.0 * (_ia_i(ia) === i_prime && _ia_a(ia) === a_star)],
-            sim.IA
-        ));
-
-        // Update our belief of how valuable doing a* in response to i' is.
-        const succ_v = new Map(imap(
-            ia => [ia, (
-                (_ia_i(ia) === i_prime && _ia_a(ia) === a_star) ?
-                (sim.v.get(ia) * sim.z.get(ia) + r) / (sim.z.get(ia) + 1.0):
-                sim.v.get(ia)
-            )],
-            sim.IA
-        ));
-
-        // Advance
-        sim.n = succ_n;
-        sim.z = succ_z;
-        sim.v = succ_v;
-
-        */
-
-        const snapshot = {};
+        const snapshot = {}; // TODO
         return snapshot
     }
 

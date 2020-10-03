@@ -162,7 +162,7 @@ function makeSimulation(ctx) {
         ctx.input_action_rewards
     ));
 
-    // initialise bandit memory
+    // initialise learner memory
 
     // n is how many times we've seen input i.
     sim.n = new Map(imap(i => [i, 0.0], sim.I));
@@ -176,7 +176,7 @@ function makeSimulation(ctx) {
     sim.step = function(emit) {
         // The environment generates an input i' for us to observe.
         const i_prime = randomChoice(ctx.inputs);
-        emit(['crow-bandit observed input:', i_prime]);
+        emit(['crow-learner observed input:', i_prime]);
 
         // Observe the input i' with our sensors
         const s = new Map(imap(i => [i, 1.0*(i === i_prime)], sim.I));
@@ -196,18 +196,17 @@ function makeSimulation(ctx) {
         ));
         // emit(['Considered action-potentials', fmtMap(p)]);
         const a_star = argmax(p);
-        emit(['crow-bandit performed action:', a_star]);
+        emit(['crow-learner performed action:', a_star]);
 
         // Respond to i' by doing a* and see what reward r the environment gives us
         const r = sim.rewards.get(_ia(i_prime, a_star));
         if (r === 1.0) {
-            emit(['crow-bandit demonstrated the desired action']);
-            emit(['crow-bandit got a reward']);
+            emit(['crow-learner demonstrated the desired action']);
+            emit(['crow-learner got a reward']);
         } else {
-            emit(['crow-bandit failed to demonstrate the desired action']);
-            emit(['crow-bandit did not get a reward']);
+            emit(['crow-learner failed to demonstrate the desired action']);
+            emit(['crow-learner did not get a reward']);
         }
-        
 
         // Update how many times we've observed i' and done a* in response to i'
         const succ_n = new Map(imap(i => [i, sim.n.get(i) + 1.0*(i === i_prime)], sim.I));
