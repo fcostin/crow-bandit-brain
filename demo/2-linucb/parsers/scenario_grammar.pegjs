@@ -4,8 +4,8 @@
     return chars.join("");
   }
   
-  function makeFloat(result) {
-    const chars = [result[0]].concat(result[1]);
+  function makeFloat(x, y) {
+    const chars = x.concat(".").concat(y);
     return parseFloat(chars.join(""));
   }
 }
@@ -26,7 +26,7 @@ Name "name"
     = name:([A-Za-z-_][A-Za-z0-9-_]*) { return makeName(name); }
 
 Decimal "decimal"
-    = x:([0-9]+("."[0-9]+)) { return makeFloat(x); }
+    = x:([0-9]+)"."y:([0-9]+) { return makeFloat(x, y); }
 
 Generator
     = variable_name:Name "~" distribution:Distribution _ {
