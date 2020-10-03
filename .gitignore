@@ -1,1 +1,3 @@
 /.venv/*
+/dev/dist/main.js
+/dev/node_modules/*
