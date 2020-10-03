@@ -1,22 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="index.css">
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-</head>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="index.css">
+  </head>
 <body>
     <div id="app">
         <div class="layout-wrapper">
             <div class="layout-edit">
                 <h3><span>Design your experiment:</span></h3>
-                <span>Raw input variable definitions:</span>
+                <span>Input definitions:</span>
                 <br />
-                <textarea v-model="param_raw_input_defns" :disabled=is_edit_disabled></textarea>
-                <br />
-                <span>Scenario definitions:</span>
-                <br />
-                <textarea v-model="param_scenario_defns" :disabled=is_edit_disabled></textarea>
+                <textarea v-model="param_input_defns" :disabled=is_edit_disabled></textarea>
                 <br />
                 <span>Action definitions:</span>
                 <br />
@@ -26,18 +21,11 @@
                 <br />
                 <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
                 <br />
-                <h3><span>Adjust your crow-learner:</span></h3>
-                <br />
-                <span>Feature Generation - degree of monomial basis: </span>
-                <input v-model.number="param_input_monomial_degree" min=0 max=5 type="number" :disabled=is_edit_disabled>
-                <br />
                 <input type="radio" id="mode" value="edit" v-model="ui_mode">
                 <label for="edit">Design</label>
                 <input type="radio" id="mode" value="run" v-model="ui_mode">
                 <label for="run">Run</label>
                 <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
-                <br />
-                <span>{{status}}</span>
             </div>
             <div class="layout-sim">
                 <h3><span>results of trial:</span></h3>
@@ -62,6 +50,6 @@
             </div>
         </div>
     </div>
-<script src="index.js"></script>
+<script src="../../js/demo-discrete-bandit-bundle.js"></script>
 </body>
 </html>
