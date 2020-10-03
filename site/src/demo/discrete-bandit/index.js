@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 const default_param_input_defns = [
     "stimulus-red",
     "stimulus-blue",
