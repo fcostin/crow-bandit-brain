@@ -10,5 +10,8 @@ module.exports = {
     alias: {
       vue: 'vue/dist/vue.min.js'
     }
-  }
+  },
+  optimization: {
+    minimize: false
+  },
 };

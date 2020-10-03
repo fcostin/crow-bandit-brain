@@ -14,7 +14,11 @@
   },
   "dependencies": {
     "ndarray": "^1.0.19",
+    "ndarray-blas-dger": "^1.0.2",
+    "ndarray-blas-level1": "^1.1.3",
     "ndarray-householder-qr": "^2.3.3",
+    "ndarray-ops": "^1.2.2",
+    "numjs": "^0.16.0",
     "vue": "^2.6.12"
   }
 }

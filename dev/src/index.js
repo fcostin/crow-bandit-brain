@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import {parse as scenarioParser}  from './scenario_parser.js';
+import {NewLinUCB, asarray} from './linucb.js'
 
 const default_param_raw_input_defns = [
     "x0",
@@ -91,7 +92,7 @@ var app = new Vue({
     },
     methods: {
         step: function(event) {
-            try {
+            // try {
                 if (this.sim == null) {
                     const ctx = {};
                     try {
@@ -136,9 +137,9 @@ var app = new Vue({
                 this.out_columns = snapshotTable.out_columns;
                 this.out_rows = snapshotTable.out_rows;
                 this.status = ""
-            } catch(e) {
-                this.status = e
-            }
+            //} catch(e) {
+            //    this.status = e
+            //}
         }
     }
 });
@@ -313,7 +314,24 @@ function makeSimulation(ctx) {
 
     sim.ctx = ctx;
 
-    // initialise learner memory
+    // Ref: http://rob.schapire.net/papers/www10.pdf Equation (4)
+    const delta = 0.1;
+    const alpha = 1.0 + Math.sqrt(Math.log(2.0 / delta) / 2.0);
+
+    const d = sim.ctx.raw_inputs.length;
+
+    sim.learner = NewLinUCB(alpha, d, sim.ctx.actions)
+
+    sim.get_reward = function(scenario, action) {
+      for (const item of sim.ctx.input_action_rewards) {
+        if (scenario.scenario_name === item.input && action == item.action) {
+          return item.reward
+        }
+      }
+      throw new error("no input-action-reward defined");
+    }
+
+
 
     // TODO for each action a initialise the starting model and store in memory
 
@@ -327,26 +345,34 @@ function makeSimulation(ctx) {
         // The environment generates raw inputs from that scenario for crow to observe.
         const raw_input_values = evalGenerators(scenario.generators);
 
-        emit(['crow observes raw inputs: ', fmtMap(raw_input_values)]);
+        emit(['crow observed raw inputs: ', fmtMap(raw_input_values)]);
 
         // Feature detection pass
 
         const degree = sim.ctx.input_monomial_degree;
         const feature_values = monomialBasis(degree, raw_input_values);
 
-        emit(['crow generates input features: ', fmtMap(feature_values)]);
+        emit(['crow generated input features: ', fmtMap(feature_values)]);
 
-        // initialise learner memory
+        const feature_keys = Array.from(feature_values.keys()).sort();
+        const x = asarray([d], feature_keys.map(k => feature_values.get(k)));
+        const p_by_a = sim.learner.chooseAction(x);
+        const a_star = argmax(p_by_a);
 
-        emit(['TODO: crow calculates an upper-confidence-bound estimate for reward associated with each possible action']);
+        emit(['crow did action: '], a_star);
 
-        emit(['TODO: crow selects an action to perform with a maximal upper-confidence-bound value']);
+        const r = sim.get_reward(scenario, a_star);
+        if (r === 1.0) {
+            emit(['crow demonstrated the desired action']);
+            emit(['crow got a reward']);
+        } else {
+            emit(['crow failed to demonstrate the desired action']);
+            emit(['crow did not get a reward']);
+        }
 
-        emit(['TODO: crow does its action and takes its chances']);
+        sim.learner.updateReward(x, a_star, r);
 
-        emit(['TODO: crow observes a reward from the environment']);
-
-        emit(['TODO: crow updates model for the selection action and store it in memory']);
+        emit(['crow observed the reward from the environment']);
 
         /*
         // The environment generates an input i' for us to observe.
