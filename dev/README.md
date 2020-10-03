@@ -7,6 +7,10 @@ docker build -t npm -f npm.Dockerfile .
 ./venv.sh npm install --save-dev webpack webpack-cli
 
 ./venv.sh npm install --save vue
+
+./venv.sh npm install --save ndarray
+
+./venv.sh npm install --save ndarray-householder-qr
 ```
 
 Running webpack to produce `dist/main.js`

@@ -13,6 +13,8 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "ndarray": "^1.0.19",
+    "ndarray-householder-qr": "^2.3.3",
     "vue": "^2.6.12"
   }
 }
