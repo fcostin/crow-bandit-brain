@@ -3,21 +3,30 @@ import Vue from 'vue';
 var app = new Vue({
     el: '#app',
     data: {
-        drawingContext: null,
+        ctx: null,
+        tempCanvas: null,
+        tempCtx: null,
     },
     mounted() {
-        this.drawingContext = document.getElementById("c").getContext("2d");
+        this.canvas = document.getElementById("c")
+        this.canvasCtx = this.canvas.getContext("2d");
+
+        // We use a second canvas to write image data to directly.
+        // Then we can resize the rendered image and draw it atop
+        // our actual visible canvas.
+        this.tempCanvas = document.createElement("canvas");
+        this.tempCanvasCtx = this.tempCanvas.getContext("2d");
     },
     methods: {
         render: function(event) {
-            const w = 400;
-            const h = 200;
+            const w = 80;
+            const h = 40;
             const bytes_per_pixel = 4;
 
-            // const n = h * w * bytes_per_pixel;
-            // const buffer = new Uint8ClampedArray(n);
+            this.tempCanvas.width = w;
+            this.tempCanvas.height = h;
 
-            const imageData = this.drawingContext.getImageData(0, 0, w, h);
+            const imageData = this.tempCanvasCtx.getImageData(0, 0, w, h);
             const buffer = imageData.data;
 
             // k addresses the first byte (the red byte) of a pixel
@@ -41,7 +50,10 @@ var app = new Vue({
                 }
             }
 
-            this.drawingContext.putImageData(imageData, 0, 0);
+            this.tempCanvasCtx.putImageData(imageData, 0, 0);
+
+            // OK, resize and draw the image atop the visible canvas.
+            this.canvasCtx.drawImage(this.tempCanvas, 0, 0, w, h, 0, 0, this.canvas.width, this.canvas.height);
         }
     }
 });

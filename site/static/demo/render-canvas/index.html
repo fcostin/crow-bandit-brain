@@ -6,9 +6,11 @@
         <link rel="stylesheet" href="index.css">
     </head>
 <body>
-    <p>
-        This demo illustrates triggering rendering into a html5 canvas from inside a vue app.
-        The image data is rendered from javascript running in the browser.
+    <p>Rendering demo</p>
+    <ul>
+        <li>trigger drawing to a canvas from a vue app</li>
+        <li>render bitmap image data in the browser using javascript</li>
+        <li>render at low resolution and resize the image to fill a target canvas</li>
     </p>
     <div id="app">
         <canvas id="c"></canvas>
@@ -19,7 +21,7 @@
     <ul>
         <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas">mozilla.org - pixel manipulation with canvas</a></li>
         <li><a href="https://medium.com/@scottmatthew/using-html-canvas-with-vue-js-493e5ae60887">Scott Cook - using html canvas with vue js</a></li>
-        
+        <li><a href="https://stackoverflow.com/a/34867213">markE's answer on stack overflow demonstrating how to scale an image</a></li>
     </ul>
     <script src="../../js/demo-render-canvas-bundle.js"></script>
 </body>
