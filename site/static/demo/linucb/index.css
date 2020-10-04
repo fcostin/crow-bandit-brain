@@ -17,3 +17,9 @@ html, body {
     grid-column: 2;
     grid-row: 1;
 }
+
+#learner-state-view {
+    height: 200px;
+    width: 400px;
+    border: 1px solid gray;
+}

@@ -64,10 +64,24 @@ var app = new Vue({
         param_input_monomial_degree: 2,
         ui_mode: "edit",
         out_debug: "",
-        out_columns: [],
-        out_rows: [],
         sim: null,
         status: "",
+
+        // canvas for learner-state-view
+        canvas: null,
+        canvas_ctx: null,
+        temp_canvas: null,
+        temp_canvas_ctx: null,
+    },
+    mounted: function() {
+        this.canvas = document.getElementById("learner-state-view")
+        this.canvas_ctx = this.canvas.getContext("2d");
+
+        // We use a second canvas to write image data to directly.
+        // Then we can resize the rendered image and draw it atop
+        // our actual visible canvas.
+        this.temp_canvas = document.createElement("canvas");
+        this.temp_canvas_ctx = this.temp_canvas.getContext("2d");
     },
     computed: {
         is_edit_disabled: function() {
@@ -83,71 +97,63 @@ var app = new Vue({
             // don't include latest edits.
             if (mode === "edit") {
                 this.sim = null;
-                this.out_columns = [];
-                this.out_rows = [];
                 this.out_debug = [];
             }
         }
     },
     methods: {
         step: function(event) {
-            // try {
-                if (this.sim == null) {
-                    const ctx = {};
-                    try {
-                        ctx.raw_inputs = parseLines(parseName, this.param_raw_input_defns);
-                    } catch(e) {
-                        this.status = "failed to parse raw inputs: " + e
-                        return
-                    }
-                    try {
-                        ctx.input_scenarios = scenarioParser(this.param_scenario_defns);
-                    } catch(e) {
-                        this.status = "failed to parse scenarios: " + e
-                        return
-                    }
-                    try {
-                        ctx.actions = parseLines(parseName, this.param_action_defns);
-                    } catch(e) {
-                        this.status = "failed to parse actions: " + e
-                        return
-                    }
-                    try {
-                        ctx.input_action_rewards = parseLines(parseInputActionReward, this.param_input_action_reward_defns);
-                    } catch(e) {
-                        this.status = "failed to parse input-action-rewards: " + e
-                        return
-                    }
-                    ctx.input_monomial_degree = this.param_input_monomial_degree
-                    this.sim = makeSimulation(ctx);
+            if (this.sim == null) {
+                const ctx = {};
+                try {
+                    ctx.raw_inputs = parseLines(parseName, this.param_raw_input_defns);
+                } catch(e) {
+                    this.status = "failed to parse raw inputs: " + e
+                    return
                 }
-
-                let event_log = [];
-
-                function emit(args) {
-                    event_log.push(args.join("  "));
+                try {
+                    ctx.input_scenarios = scenarioParser(this.param_scenario_defns);
+                } catch(e) {
+                    this.status = "failed to parse scenarios: " + e
+                    return
                 }
+                try {
+                    ctx.actions = parseLines(parseName, this.param_action_defns);
+                } catch(e) {
+                    this.status = "failed to parse actions: " + e
+                    return
+                }
+                try {
+                    ctx.input_action_rewards = parseLines(parseInputActionReward, this.param_input_action_reward_defns);
+                } catch(e) {
+                    this.status = "failed to parse input-action-rewards: " + e
+                    return
+                }
+                ctx.input_monomial_degree = this.param_input_monomial_degree
+                this.sim = makeSimulation(ctx);
+            }
 
-                const snapshot = this.sim.step(emit);
+            let event_log = [];
 
-                const snapshotTable = makeSnapshotTable(snapshot);
+            function emit(args) {
+                event_log.push(args.join("  "));
+            }
 
-                this.out_debug = event_log;
-                this.out_columns = snapshotTable.out_columns;
-                this.out_rows = snapshotTable.out_rows;
-                this.status = ""
-            //} catch(e) {
-            //    this.status = e
-            //}
+            this.sim.step(emit);
+
+            this.out_debug = event_log;
+            this.status = ""
+
+            renderLearnerStateView(
+                this.sim,
+                this.canvas,
+                this.canvas_ctx,
+                this.temp_canvas,
+                this.temp_canvas_ctx,
+            );
         }
     }
 });
-
-function* imap(f, xs) {
-    for (const x of xs) {
-        yield f(x);
-    }
-}
 
 function fmtSet(xs) {
     return "{" + Array.from(xs).sort().join(", ") + "}";
@@ -155,26 +161,6 @@ function fmtSet(xs) {
 
 function fmtMap(xs) {
     return "{" + Array.from(xs).sort().map(item => item.join(": ")).join(", ") + "}";
-}
-
-function _ia(i, a) {
-    return [i, a].join("#");
-}
-
-function _ia_i(ia) {
-    return ia.split("#")[0];
-}
-
-function _ia_a(ia) {
-    return ia.split("#")[1];
-}
-
-function sum(xs) {
-    let acc = 0.0;
-    for (const x of xs) {
-        acc += x;
-    }
-    return acc;
 }
 
 function argmax(kvs) {
@@ -296,18 +282,6 @@ function monomialBasis(degree, raw_inputs) {
     }
 }
 
-// define some constants
-const BIGV = 10.0; // BIGV is a finite but very enticing value.
-const C = 1.0; // C is explore-exploit tradeoff parameter.
-
-// Uncertainty bound used when estimating the value of doing
-// action a in response to input i. . n_ is the number of
-// times we've encountered the input i before. z_ is the number
-// of times we've tried doing action a in response to i.  
-const uncertainty = function(n_, z_) {
-    return (z_ === 0.0) ? BIGV : Math.sqrt(Math.log(n_) / (1.0 * z_));
-};
-
 function makeSimulation(ctx) {
     const sim = new Object();
 
@@ -387,13 +361,115 @@ function makeSimulation(ctx) {
     return sim
 }
 
-function makeSnapshotTable(snapshot) {
-    const out_columns = ["colname1", "colname2"];
-    let out_rows = [{"colname1": "todo", "colname2": "todo"}];
-    return {
-        "out_columns": out_columns,
-        "out_rows": out_rows,
+function renderLearnerStateView(sim, canvas, canvas_ctx, temp_canvas, temp_canvas_ctx) {
+    // this view currently only supports 2-d raw input vector x
+    if (sim.ctx.raw_inputs.length != 2) {
+        return;
     }
+    // this view currently only supports two distict actions
+    if (sim.ctx.actions.length != 2) {
+        return;
+    }
+
+    const x0_rez = 40;
+    const x1_rez = 40;
+    
+    // TODO: automatically pick appropriate bounding box (e.g. 5% 95% quantiles)
+    const x0_grid = linspan(-0.2, 1.2, x0_rez);
+    const x1_grid = linspan(-1.2, 1.2, x1_rez);
+
+    // let's display x0 along x-axis (w) and x1 along y-axis (h)
+
+    const w = x0_rez;
+    const h = x1_rez;
+    const bytes_per_pixel = 4;
+    temp_canvas.width = w;
+    temp_canvas.height = h;
+
+    const imageData = temp_canvas_ctx.getImageData(0, 0, w, h);
+    const buffer = imageData.data;
+
+    var i, j, k = 0;
+
+    // Prepare and store the model used to evaluate UCB for each action.
+    // The work of solving for parameters theta and factorising
+    // the matrix A can be reused when evaluating across all the
+    // grid points.
+    const model_by_action = new Map();
+    for (const a of sim.ctx.actions) {
+        model_by_action.set(a, sim.learner.getModelForAction(a));
+    }
+
+    const category_a0_r = 0xff;
+    const category_a0_g = 0x7f;
+    const category_a0_b = 0x0e;
+
+    const category_a1_r = 0x1f;
+    const category_a1_g = 0x77;
+    const category_a1_b = 0xb4;
+
+    // First pass: evaluate UCB value for each action and temporarily
+    // write them into the image buffer.
+    for (i = 0; i < h; i++) {
+         // canvas vertical coords go from top to bottom.
+         // flip to align with convention for charts.
+        const x1 = x1_grid[h - i - 1];
+        for(j = 0; j < w; j++) {
+            const x0 = x0_grid[j];
+
+            // todo: optimise this! so much wasteful transformation & mallocs...
+            // compute raw input for this grid point (j, i)
+            const raw_input_values = new Map([['x0', x0], ['x1', x1]]);
+            // compute feature vector for this grid point
+            const degree = sim.ctx.input_monomial_degree;
+            const feature_values = monomialBasis(degree, raw_input_values);
+            const d = feature_values.size;
+            const feature_keys = Array.from(feature_values.keys()).sort();
+            const featureVector = asarray([d], feature_keys.map(k => feature_values.get(k)));
+
+            // evaluate UCB for each action
+            const ucb_a0 = sim.learner.getUCB(model_by_action.get(sim.ctx.actions[0]), featureVector);
+            const ucb_a1 = sim.learner.getUCB(model_by_action.get(sim.ctx.actions[1]), featureVector);
+
+            // normalise the output to roughly sit in [0, 255]
+            const u = ucb_a0;
+            const v = ucb_a1;
+
+            const gap = u - v;
+
+            // Set pixel value
+            if (gap > 0) {
+                buffer[k] = category_a0_r;
+                buffer[k+1] = category_a0_g;
+                buffer[k+2] = category_a0_b;
+            } else if (gap < 0) {
+                buffer[k] = category_a1_r;
+                buffer[k+1] = category_a1_g;
+                buffer[k+2] = category_a1_b;
+            } else {
+                buffer[k] = 255;
+                buffer[k+1] = 255;
+                buffer[k+2] = 255;
+            }
+            buffer[k+3] = 255;
+            k += bytes_per_pixel;
+        }
+    }
+    temp_canvas_ctx.putImageData(imageData, 0, 0);
+    // OK, resize and draw the image atop the visible canvas.
+    canvas_ctx.drawImage(temp_canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
+
+}
+
+function linspan(a, b, n) {
+    // equally spaced points in interval [a, b].
+    let xs = [];
+    const w = 1.0 / (n - 1);
+    for (let i = 0; i < n; i++) {
+        let tau = i * w;
+        xs.push(a + (b-a)*tau);
+    }
+    return xs;
 }
 
 function parseLines(parseLine, text) {

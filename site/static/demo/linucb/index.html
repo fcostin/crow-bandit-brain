@@ -46,18 +46,16 @@
                 </ol>
                 <br />
                 <h3><span>crow-learner's hidden brain state:</span></h3>
-                <table>
-                    <thead>
-                      <tr>
-                        <th v-for="key in out_columns">{{key}}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in out_rows">
-                        <td v-for="key in out_columns">{{row[key]}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <canvas id="learner-state-view"></canvas>
+                <p>
+                  Above plot shows the action decision function learned by the crow.
+                  Horizontal axis is value of x0 raw input variable, vertical axis is value of x1 raw input variable.
+                  Colour indicates which action will be chosen by the crow for that raw input: the first action (orange)
+                  or second action (blue).
+                  This plot is defined by sampling the crow's current upper-confidence-bound (UCB) function for each action
+                  over a grid, then comparing the different UCB values for each action at each grid point.
+                  Note: this plot is only implemented for a two-dimensional raw input vector with a choice of two actions.
+              </p>
             </div>
         </div>
     </div>
