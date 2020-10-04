@@ -71,6 +71,28 @@ function NewLinUCB(alpha, d, actions) {
         A_by_a: new Map(),
         b_by_a: new Map(),
 
+        getModelForAction: function(a) {
+            if (!this.A_by_a.has(a)) {
+                // initialise A to d-dimensional identity matrix
+                this.A_by_a.set(a, eye(this.d));
+                // initialise b to d-dimensional zero vector
+                this.b_by_a.set(a, zeros([this.d]));
+            }
+            const A = this.A_by_a.get(a);
+            const b = this.b_by_a.get(a);
+            const inv_A = qr_invert(A);
+            // theta := A^{-1} b
+            const theta = inv_A(b);
+            return [theta, inv_A];
+        },
+
+        getUCB: function(model, x) {
+            const theta = model[0];
+            const inv_A = model[1];
+            // p := theta^t x + alpha * sqrt(x^t A^{-1} x)
+            return dot(theta, x) + this.alpha * Math.sqrt(dot(x, inv_A(x)));
+        },
+
         // x must be a d-dimensional array
         // Returns a _distribution_ over actions encoded as a
         // Map: action -> preference. Actions with higher
@@ -82,23 +104,9 @@ function NewLinUCB(alpha, d, actions) {
             const p_by_a = new Map();
 
             for(const a of this.actions) {
-                if (!this.A_by_a.has(a)) {
-                    // initialise A to d-dimensional identity matrix
-                    this.A_by_a.set(a, eye(this.d));
-                    
-                    // initialise b to d-dimensional zero vector
-                    this.b_by_a.set(a, zeros([this.d]));
-                }
-                const A = this.A_by_a.get(a);
-                const b = this.b_by_a.get(a);
-                const inv_A = qr_invert(A);
-                
-                // theta := A^{-1} b
-                const theta = inv_A(b);
-                
+                const model = this.getModelForAction(a);
                 // p := theta^t x + alpha * sqrt(x^t A^{-1} x)
-                const p = dot(theta, x) + this.alpha * Math.sqrt(dot(x, inv_A(x)));
-                
+                const p = this.getUCB(model, x);
                 p_by_a.set(a, p);
             }
             return p_by_a;
