@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     "demo-discrete-bandit": "./src/demo/discrete-bandit/index.js",
     "demo-linucb": "./src/demo/linucb/index.js",
+    "demo-render-canvas": "./src/demo/render-canvas/index.js",
   },
   output: {
     path: __dirname + "/dist",

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>demo of vue canvas rendering</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="index.css">
+    </head>
+<body>
+    <p>
+        This demo illustrates triggering rendering into a html5 canvas from inside a vue app.
+        The image data is rendered from javascript running in the browser.
+    </p>
+    <div id="app">
+        <canvas id="c"></canvas>
+        <button v-on:click="render">render</button>
+    </div>
+    <br />
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas">mozilla.org - pixel manipulation with canvas</a></li>
+        <li><a href="https://medium.com/@scottmatthew/using-html-canvas-with-vue-js-493e5ae60887">Scott Cook - using html canvas with vue js</a></li>
+        
+    </ul>
+    <script src="../../js/demo-render-canvas-bundle.js"></script>
+</body>
+</html>
