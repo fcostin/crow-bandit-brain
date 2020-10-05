@@ -361,6 +361,21 @@ function makeSimulation(ctx) {
     return sim
 }
 
+// Find quantiles of input array xs. qs is an array of quantiles (each in range [0.0, 1.0]).
+// Returns result array of computed quantiles s.t. result[j] corresponds to quantile qs[j] of xs.
+const quantiles = function(xs, qs) {
+    const s = [...xs].sort((a, b) => a - b); // sort without modifying xs
+    const n = s.length;
+    const res = new Array(qs.length);
+    for (var j = 0; j < qs.length; j++) {
+        const pos = (n - 1) * qs[j];
+        const i = Math.floor(pos);
+        const tau = pos - i;
+        res[j] = s[i] + (i + 1 < n ? tau * (s[i+1] - s[i]) : 0.0);
+    }
+    return res;
+};
+
 function renderLearnerStateView(sim, canvas, canvas_ctx, temp_canvas, temp_canvas_ctx) {
     // this view currently only supports 2-d raw input vector x
     if (sim.ctx.raw_inputs.length != 2) {
@@ -408,8 +423,12 @@ function renderLearnerStateView(sim, canvas, canvas_ctx, temp_canvas, temp_canva
     const category_a1_g = 0x77;
     const category_a1_b = 0xb4;
 
-    // First pass: evaluate UCB value for each action and temporarily
-    // write them into the image buffer.
+    // First pass: evaluate UCB value for the two action values, compute the
+    // "gap" or difference between the two values and store that gap in a buffer
+    // corresponding to the grid layout.
+
+    const gaps = new Array(h * w);
+
     for (i = 0; i < h; i++) {
          // canvas vertical coords go from top to bottom.
          // flip to align with convention for charts.
@@ -431,27 +450,107 @@ function renderLearnerStateView(sim, canvas, canvas_ctx, temp_canvas, temp_canva
             const ucb_a0 = sim.learner.getUCB(model_by_action.get(sim.ctx.actions[0]), featureVector);
             const ucb_a1 = sim.learner.getUCB(model_by_action.get(sim.ctx.actions[1]), featureVector);
 
-            // normalise the output to roughly sit in [0, 255]
-            const u = ucb_a0;
-            const v = ucb_a1;
+            const gap = ucb_a0 - ucb_a1;
+            gaps[k] = gap;
+            k += bytes_per_pixel;
+        }
+    }
 
-            const gap = u - v;
+    // Second pass - we want to colour the gap values we've computed in a way
+    // that helps communicate the different values. One way to do this is pick
+    // thresholds to define "buckets" and then assign a colour by the bucket.
+    // One way to define thresholds is to compute quantiles. We'll use a fixed
+    // palette of four colours for non-negative values and four colours for
+    // negative values.
 
-            // Set pixel value
-            if (gap > 0) {
-                buffer[k] = category_a0_r;
-                buffer[k+1] = category_a0_g;
-                buffer[k+2] = category_a0_b;
-            } else if (gap < 0) {
-                buffer[k] = category_a1_r;
-                buffer[k+1] = category_a1_g;
-                buffer[k+2] = category_a1_b;
-            } else {
-                buffer[k] = 255;
-                buffer[k+1] = 255;
-                buffer[k+2] = 255;
+    const a0_margin = gaps.filter(g => g>=0.0);
+    const a1_margin = gaps.filter(g => g<0.0).map(g => -g);
+
+    const qs = [0.25, 0.50, 0.75];
+    const a0_qs = quantiles(a0_margin, qs);
+    const a1_qs = quantiles(a1_margin, qs);
+
+    // Define our buckets and assign them colours
+
+    const bucketise = function(g) {
+        if (g >= 0) {
+            if (g <= a0_qs[0]) {
+                return 0;
             }
-            buffer[k+3] = 255;
+            if (g <= a0_qs[1]) {
+                return 1;
+            }
+            if (g <= a0_qs[2]) {
+                return 2;
+            }
+            return 3;
+        }
+        g = -g;
+        if (g <= a1_qs[0]) {
+            return 4;
+        }
+        if (g <= a1_qs[1]) {
+            return 5;
+        }
+        if (g <= a1_qs[2]) {
+            return 6;
+        }
+        return 7;
+    }
+
+    function set_pixel_rgba(k, b) {
+        buffer[k+3] = 255;
+        switch (b) {
+            // light orange -> dark orange
+            case 0: // fdd0a2
+                buffer[k]   = 0xfd;
+                buffer[k+1] = 0xd0;
+                buffer[k+2] = 0xa2;
+                return
+            case 1: // fdae6b
+                buffer[k]   = 0xfd;
+                buffer[k+1] = 0xae;
+                buffer[k+2] = 0x6b;
+                return
+            case 2: // fd8d3c
+                buffer[k]   = 0xfd;
+                buffer[k+1] = 0x8d;
+                buffer[k+2] = 0x3c;
+                return
+            case 3: // e6550d
+                buffer[k]   = 0xe6;
+                buffer[k+1] = 0x55;
+                buffer[k+2] = 0x0d;
+                return
+            // light blue -> dark blue
+            case 4: // c6dbef
+                buffer[k]   = 0xc6;
+                buffer[k+1] = 0xdb;
+                buffer[k+2] = 0xef;
+                return
+            case 5: // 9ecae1
+                buffer[k]   = 0x9e;
+                buffer[k+1] = 0xca;
+                buffer[k+2] = 0xe1;
+                return
+            case 6: // 6baed6
+                buffer[k]   = 0x6b;
+                buffer[k+1] = 0xae;
+                buffer[k+2] = 0xd6;
+                return
+            case 7: // 3182bd
+                buffer[k]   = 0x31;
+                buffer[k+1] = 0x82;
+                buffer[k+2] = 0xbd;
+                return
+        }
+    }
+
+    // Third pass - write rgba values into imageData buffer
+    k = 0;
+    for (i = 0; i < h; i++) {
+        for(j = 0; j < w; j++) {
+            set_pixel_rgba(k, bucketise(gaps[k]));
             k += bytes_per_pixel;
         }
     }
