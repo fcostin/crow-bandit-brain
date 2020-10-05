@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="index.css">
+  </head>
+<body>
+    <div id="app">
+        <div class="layout-wrapper">
+            <div class="layout-edit">
+                <h3><span>Design your experiment:</span></h3>
+                <span>Input definitions:</span>
+                <br />
+                <textarea v-model="param_input_defns" :disabled=is_edit_disabled></textarea>
+                <br />
+                <span>Action definitions:</span>
+                <br />
+                <textarea v-model="param_action_defns" :disabled=is_edit_disabled></textarea>
+                <br />
+                <span>Input-Action-Reward definitions:</span>
+                <br />
+                <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
+                <br />
+                <input type="radio" id="mode" value="edit" v-model="ui_mode">
+                <label for="edit">Design</label>
+                <input type="radio" id="mode" value="run" v-model="ui_mode">
+                <label for="run">Run</label>
+                <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
+            </div>
+            <div class="layout-sim">
+                <h3><span>results of trial:</span></h3>
+                <br />
+                <ol>
+                    <li v-for="event in out_debug">{{event}}</li>
+                </ol>
+                <br />
+                <h3><span>crow-learner's hidden brain state:</span></h3>
+                <table>
+                    <thead>
+                      <tr>
+                        <th v-for="key in out_columns">{{key}}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in out_rows">
+                        <td v-for="key in out_columns">{{row[key]}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+            </div>
+        </div>
+    </div>
+<script src="../../js/demo-discrete-bandit-bundle.js"></script>
+</body>
+</html>

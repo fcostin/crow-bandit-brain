@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+<body>
+  <h3>crow-bandit-brain demos</h3>
+<ol>
+    <li>
+      Introduction: this page contains a sequence of demos that crudely model the experimental protocol and learning task of a crow.
+      See <a href="https://science.sciencemag.org/content/369/6511/1626">Figure 1; Nieder, Wagener & Rinnert - A neural correlate of sensory consciousness in a corvid bird</a>.
+    </li>
+    <li>
+      Demo: <a href="demo/discrete-bandit/index.html">crow-learner with no perception model and basic discrete UCB learning algorithm</a>.
+      <p>
+        Input stimuli are modelled in a simplistic way: the space of input stimuli is modelled as a set containing four distinct elements.
+        There is no uncertainly in what element is observed and no attempt to model perception: instead, the input stimulus chosen by the
+        experimenter is mapped to a categorical variable in feature space that the crow may observe as a direct input. The crow starts with
+        no knowledge about the mapping from stimuli and actions to rewards, and needs to learn this by selecting and performing an action
+        in response to each input element. There are only two actions: "react" and "wait". A reward of 1 is given for performing the
+        "correct" action in response to the stimuli. Incorrect actions receive a reward of 0.
+      </p>
+      <p> 
+        The learning algorithm is based on upper confidence bounds: for each combination of input stimulus and possible action, the crow
+        stores how many times it has observed that exact stimulus, how many times it performed that action in response, the observed mean
+        reward value. From these values the crow can estimate upper-confidence bounds on the reward associated with performing an
+        action. The crow always selects an action to perform that has a maximum value of upper-confidence bound. Ties are broken randomly.
+      </p>
+      <p>
+        Critique of this demo:
+        <ul>
+          <li>No perpeption model to distinguish what stimulus the experimenter chose versus what was
+            perceived. This is unrealistic.</li>
+          <li>If two input stimuli differ then they are regarded as corresponding to completely different situations.
+            There is no concept of similarity where the crow might reason "this novel situation is only slightly
+            different from another situation i am very familiar with". This has two downsides: the learning rate of
+            the crow will be much slower than otherwise when faced with situations that only differ slightly from
+            well-understood situations, and the crow will need an amount of memory proportional to the number of
+            distinct input stimuli observed, in order to remember every detail of every situation ever observed.
+          </li>
+        </ul>
+      </p>
+    </li>
+    <li>
+      Demo: <a href="demo/linucb/index.html">crow-learner with basic perception model using the LinUCB active learning algorithm</a>.
+    </li>
+    <p>
+      Plans:
+      <ul>
+        <li>
+          Model the distinction between the stimulus chosen by the experimenter and what is pereceived by the crow.
+          Input stimulus chosen by the experimenter will be modelled as a vector of two continuous variables:
+          <ul>
+            <li>x0 - first light intensity - set to a value of 0.0, 0.2, 0.4, 0.6, 0.8 or 1.0</li>
+            <li>x1 - second light colour - set to a value of 1.0 (intense red) or -1.0 (intense blue)</li>
+          </ul>
+          For example, the stimulus of "the crow is first shown a medium-intensity light, then after a short delay is
+          shown a red light" can be encoded as x0 = 0.6 , x1 = 1.0.
+          A value of x0 = 0.0 is regarded as "no stimulus" during the first stage of the trial while a value of x= 0.2, 0.4, 0.6, 0.8 or 1.0
+          is regarded as "stimulus". A noise term will also be added to these x0 values to make it harder to clearly distinguish
+          between each pair of adjacent intensity values. Noise will also be added to the x1 colour variable.
+          Note: it is equally reasonable to model this with three or more input variables, e.g. x1 could be split into two variables,
+          one to model red light intensity and the second to model blue light intensity. However, adding dimensions makes it harder to
+          visualise results.
+        </li>
+        <li>
+          Model the crow's perception as a stage of feature detectors that transform raw perceived inputs into features.
+          These features will be hand-crafted, not-learned, as: 1, x0, x1, x0*x1, x0^2, x1^2. That is, the two raw input
+          variables x0 and x1 will be transformed into a space of monomial basis vectors of degree at most 2. This is a
+          nonlinear transformation of the raw perceived inputs and is necessary as the crow needs to learn the
+          association between pairs of input variables in order to succeed at this task.
+        </li>
+        <li>
+          Use LinUCB with disjoint linear models as the active learning algorithm to select actions and learn the relationship
+          between features and actions to rewards. LinUCB will consume the features generated by the feature detectors,
+          not the raw perceived input variables. The previous nonlinear feature transformation stage is necessary as LinUCB is
+          collection of linear models. Each linear model is based on the assumption that the expected reward of performing
+          an action can be explained as a linear combination of the input features, but for this learning task the crow
+          crucially needs to learn how the action depends on the interaction between the inputs x0 and x1 in order to
+          frequently win a reward.
+        </li>
+      </ul>
+    </p>
+    <p>
+      Critique of this demo:
+      <ul>
+        <li>The feature detection layer is hand-crafted and not learned.</li>
+        <li>This active learning algorithm, LinUCB with disjoint linear models, builds and maintains a linear model for
+          each action. Information learned after performing any given action is never used when performing a
+          different action. In a richer model of this experiment, the crow could have a choice of far more than two
+          different actions to use when responding to stimuli. Failing to generalise between "similar" actions performed
+          in response to "similar" stimuli could slow the learning rate.
+        </li>
+        <li>The assumptions made by the theory behind LinUCB are being stretched or violated: the function from input model features to expected reward is not linear. It is possible that assumptions about the about the noise model are being violated as well.</li>
+        <li>The perception model is still very simple, time is not modelled as passing while the crow perceives lights or waits for the next light.</li>
+      </ul>
+    </p>
+</ol>
+<h3>other bits and pieces</h3>
+<ol>
+  <li>
+    <a href="demo/render-canvas/index.html">generating and displaying image data</a>.
+  </li>
+</ol>
+</body>
+</html>

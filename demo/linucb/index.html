@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="app">
+        <div class="layout-wrapper">
+            <div class="layout-edit">
+                <h3><span>Design your experiment:</span></h3>
+                <span>Raw input variable definitions:</span>
+                <br />
+                <textarea v-model="param_raw_input_defns" :disabled=is_edit_disabled></textarea>
+                <br />
+                <span>Scenario definitions:</span>
+                <br />
+                <textarea v-model="param_scenario_defns" :disabled=is_edit_disabled></textarea>
+                <br />
+                <span>Action definitions:</span>
+                <br />
+                <textarea v-model="param_action_defns" :disabled=is_edit_disabled></textarea>
+                <br />
+                <span>Input-Action-Reward definitions:</span>
+                <br />
+                <textarea v-model="param_input_action_reward_defns"  :disabled=is_edit_disabled></textarea>
+                <br />
+                <h3><span>Adjust your crow-learner:</span></h3>
+                <br />
+                <span>Feature Generation - degree of monomial basis: </span>
+                <input v-model.number="param_input_monomial_degree" min=0 max=5 type="number" :disabled=is_edit_disabled>
+                <br />
+                <input type="radio" id="mode" value="edit" v-model="ui_mode">
+                <label for="edit">Design</label>
+                <input type="radio" id="mode" value="run" v-model="ui_mode">
+                <label for="run">Run</label>
+                <button v-on:click="step" :disabled=is_step_disabled>Run One Trial</button>
+                <br />
+                <span>{{status}}</span>
+            </div>
+            <div class="layout-sim">
+                <h3><span>results of trial:</span></h3>
+                <br />
+                <ol>
+                    <li v-for="event in out_debug">{{event}}</li>
+                </ol>
+                <br />
+                <h3><span>crow-learner's hidden brain state:</span></h3>
+                <canvas id="learner-state-view"></canvas>
+                <p>
+                  Above plot shows the action decision function learned by the crow.
+                  Horizontal axis is value of x0 raw input variable, vertical axis is value of x1 raw input variable.
+                  Colour indicates which action will be chosen by the crow for that raw input: the first action (orange)
+                  or second action (blue).
+                  This plot is defined by sampling the crow's current upper-confidence-bound (UCB) function for each action
+                  over a grid, then comparing the different UCB values for each action at each grid point.
+                  Note: this plot is only implemented for a two-dimensional raw input vector with a choice of two actions.
+              </p>
+            </div>
+        </div>
+    </div>
+<script src="../../js/demo-linucb-bundle.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+html, body {
+    margin: 5px;
+    padding: 0;
+}
+
+#c {
+    height: 200px;
+    width: 400px;
+    border: 1px solid gray;
+}
